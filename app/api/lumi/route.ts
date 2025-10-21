@@ -8,10 +8,6 @@ import {
 } from "@/lib/schema";
 import { SYSTEM_PROMPT, USER_PROMPT_TEMPLATE } from "@/lib/prompts";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
-
 const LUMI_JSON_SCHEMA = {
   type: "object",
   additionalProperties: false,
@@ -133,7 +129,9 @@ export async function POST(request: Request) {
 
   const { verseInput } = parsedInput.data;
 
-  if (!process.env.OPENAI_API_KEY) {
+  const apiKey = process.env.OPENAI_API_KEY;
+
+  if (!apiKey) {
     // Provide a deterministic fallback so the UI remains testable in development.
     return responseWrapper({
       success: true,
@@ -143,6 +141,7 @@ export async function POST(request: Request) {
   }
 
   try {
+    const openai = new OpenAI({ apiKey });
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       temperature: 0.6,
