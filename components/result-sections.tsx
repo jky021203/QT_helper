@@ -1,8 +1,8 @@
-import { LumiResponse } from "@/lib/schema";
+import { SelahResponse } from "@/lib/schema";
 import { motion } from "framer-motion";
 
 type Props = {
-  data: Omit<LumiResponse, "verseInput"> | null;
+  data: Omit<SelahResponse, "verseInput"> | null;
   verse: string;
   isLoading: boolean;
 };
@@ -32,12 +32,12 @@ const SectionShell = ({
 }) => (
   <motion.article
     variants={itemVariants}
-    className="group rounded-3xl bg-white/90 p-6 shadow-card ring-1 ring-sage/15 backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:ring-sage/40"
+    className="group rounded-3xl bg-white/90 p-6 shadow-card ring-1 ring-selah-night/12 backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:ring-selah-night/25"
   >
-    <h3 className="font-display text-xl font-semibold text-slate-800">
+    <h3 className="text-xl font-semibold text-selah-ink">
       {title}
     </h3>
-    <div className="mt-3 text-[0.95rem] leading-relaxed text-slate-700">
+    <div className="mt-3 text-[0.95rem] leading-relaxed text-selah-ink/75">
       {children}
     </div>
   </motion.article>
@@ -46,9 +46,9 @@ const SectionShell = ({
 export function ResultSections({ data, verse, isLoading }: Props) {
   if (!data && !isLoading) {
     return (
-      <div className="mt-12 rounded-3xl border border-dashed border-sage/40 bg-white/60 p-10 text-center text-slate-500">
+      <div className="mt-12 rounded-3xl border border-dashed border-selah-night/20 bg-white/70 p-10 text-center text-selah-ink/50">
         <p className="text-base">
-          묵상하고 싶은 성경 구절을 입력하면 루미가 배경 설명부터 기도문까지
+          묵상하고 싶은 성경 구절을 입력하면 Selah가 배경 설명부터 기도문까지
           함께 정리해 드릴게요.
         </p>
       </div>
@@ -63,11 +63,16 @@ export function ResultSections({ data, verse, isLoading }: Props) {
       className="mt-12 grid gap-6"
     >
       <motion.div variants={itemVariants}>
-        <div className="rounded-3xl bg-sage/15 p-6 ring-1 ring-sage/40">
-          <p className="text-xs uppercase tracking-[0.25em] text-sage/80">
+        <div className="rounded-3xl bg-white/80 p-6 ring-1 ring-selah-night/20">
+          <p className="text-xs uppercase tracking-[0.25em] text-selah-ink/40">
             Verse
           </p>
-          <p className="mt-2 font-display text-2xl text-sage">{verse}</p>
+          <p className="mt-2 text-2xl font-semibold text-selah-ink">{verse}</p>
+          {data?.verseText && (
+            <p className="mt-3 text-base leading-relaxed text-selah-ink/75">
+              {data.verseText}
+            </p>
+          )}
         </div>
       </motion.div>
 
@@ -85,9 +90,9 @@ export function ResultSections({ data, verse, isLoading }: Props) {
         ) : (
           <ul className="grid gap-2">
             {data?.keywords?.map((item) => (
-              <li key={item.term} className="rounded-2xl bg-sage/10 p-3">
-                <p className="font-semibold text-sage">{item.term}</p>
-                <p className="text-slate-600">{item.meaning}</p>
+              <li key={item.term} className="rounded-2xl bg-selah-cloud p-3">
+                <p className="font-semibold text-selah-ink">{item.term}</p>
+                <p className="text-selah-ink/70">{item.meaning}</p>
               </li>
             ))}
           </ul>
@@ -101,8 +106,10 @@ export function ResultSections({ data, verse, isLoading }: Props) {
           <ul className="grid gap-2">
             {data?.relatedVerses?.map((item) => (
               <li key={item.reference}>
-                <p className="font-semibold text-slate-800">{item.reference}</p>
-                <p className="text-slate-600">{item.reason}</p>
+                <p className="font-semibold text-selah-ink">
+                  {item.reference}
+                </p>
+                <p className="text-selah-ink/70">{item.reason}</p>
               </li>
             ))}
           </ul>
@@ -115,7 +122,7 @@ export function ResultSections({ data, verse, isLoading }: Props) {
         ) : (
           <ul className="list-inside list-disc space-y-2">
             {data?.reflections?.map((point, idx) => (
-              <li key={idx} className="text-slate-700">
+              <li key={idx} className="text-selah-ink/80">
                 {point}
               </li>
             ))}
@@ -127,7 +134,7 @@ export function ResultSections({ data, verse, isLoading }: Props) {
         {isLoading ? (
           <SkeletonParagraph />
         ) : (
-          <p className="relative pl-4 italic text-slate-700 before:absolute before:left-0 before:top-1 before:h-full before:w-1 before:rounded-full before:bg-accent/70">
+          <p className="relative pl-4 italic text-selah-ink/80 before:absolute before:left-0 before:top-1 before:h-full before:w-1 before:rounded-full before:bg-selah-night/50">
             {data?.prayer}
           </p>
         )}
@@ -139,9 +146,9 @@ export function ResultSections({ data, verse, isLoading }: Props) {
 function SkeletonParagraph() {
   return (
     <div className="animate-pulse space-y-2">
-      <div className="h-3 rounded-full bg-sage/30"></div>
-      <div className="h-3 rounded-full bg-sage/30"></div>
-      <div className="h-3 w-3/5 rounded-full bg-sage/30"></div>
+      <div className="h-3 rounded-full bg-selah-night/15"></div>
+      <div className="h-3 rounded-full bg-selah-night/15"></div>
+      <div className="h-3 w-3/5 rounded-full bg-selah-night/15"></div>
     </div>
   );
 }
@@ -150,7 +157,7 @@ function SkeletonList({ items }: { items: number }) {
   return (
     <div className="animate-pulse space-y-2">
       {Array.from({ length: items }).map((_, idx) => (
-        <div key={idx} className="h-3 rounded-full bg-sage/30"></div>
+        <div key={idx} className="h-3 rounded-full bg-selah-night/15"></div>
       ))}
     </div>
   );

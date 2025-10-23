@@ -1,6 +1,6 @@
-🌿 Lumi (루미) – 말씀 묵상 챗봇
+🌿 Selah (셀라) – 말씀 묵상 챗봇
 
-“말씀을 이해하는 첫 걸음, 루미가 함께합니다.”
+“말씀을 이해하는 첫 걸음, 셀라가 함께합니다.”
 
 ---
 
@@ -80,10 +80,10 @@
 
 6. 데이터 구조
 
-Lumi Schema (Zod)
+Selah Schema (Zod)
 
 ```ts
-export const LumiSchema = z.object({
+export const SelahSchema = z.object({
   verseInput: z.string(),
   background: z.string(),
   keywords: z.array(z.object({
@@ -106,7 +106,7 @@ export const LumiSchema = z.object({
 | 항목 | 설명 |
 | --- | --- |
 | 전체 톤앤매너 | 부드럽고 명상적인 감성 (크림톤+세이지그린) |
-| 폰트 | Playfair Display (헤더), Pretendard (본문) |
+| 폰트 | Noto Sans KR (헤더 및 본문) |
 | 색상 팔레트 | 배경: #FDFCF8 / 포인트: #A3B18A / 액센트: #D4A373 |
 | 레이아웃 | 중앙정렬, 카드 단위 페이드업 모션 |
 | 애니메이션 | Framer Motion으로 순차 등장 |
@@ -216,6 +216,6 @@ export const LumiSchema = z.object({
 | --- | --- |
 | Day 1 | PRD 확정 및 바이브 코딩 준비 완료 |
 | Day 1 (오후) | GPT API 연결 및 프롬프트 체인 구현 |
-| Day 1 (밤) | Lumi MVP 배포 / README 기록 완료 |
+| Day 1 (밤) | Selah MVP 배포 / README 기록 완료 |
 
 ---

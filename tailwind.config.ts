@@ -9,16 +9,14 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        cream: "#FDFCF8",
-        sage: "#A3B18A",
-        accent: "#D4A373"
-      },
-      fontFamily: {
-        display: ["'Playfair Display'", "serif"],
-        body: ["Pretendard", "ui-sans-serif", "system-ui"]
+        "selah-sun": "#F8F4B0",
+        "selah-night": "#3C3868",
+        "selah-star": "#E8E2CC",
+        "selah-ink": "#2F2B4A",
+        "selah-cloud": "#FDFBEE"
       },
       boxShadow: {
-        card: "0 20px 45px -25px rgba(82, 101, 84, 0.35)"
+        card: "0 18px 32px -22px rgba(47, 43, 74, 0.35)"
       }
     }
   },

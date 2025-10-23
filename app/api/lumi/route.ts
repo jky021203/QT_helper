@@ -4,9 +4,11 @@ import { z } from "zod";
 import {
   lumiResultSchema,
   verseInputSchema,
-  LumiResponse
+  SelahResponse
 } from "@/lib/schema";
 import { SYSTEM_PROMPT, USER_PROMPT_TEMPLATE } from "@/lib/prompts";
+import bibleData from "@/bible.json";
+import { buildNormalizedKey } from "@/lib/schema";
 
 const LUMI_JSON_SCHEMA = {
   type: "object",
@@ -61,7 +63,7 @@ const LUMI_JSON_SCHEMA = {
   }
 } as const;
 
-const fallbackResponse = (verseInput: string): LumiResponse => ({
+const fallbackResponse = (verseInput: string): SelahResponse => ({
   verseInput,
   background:
     "이 구절은 하나님께서 인간으로서는 불가능해 보이는 일도 이루실 수 있다는 희망을 전합니다. 특히 제자들이 제시한 의문에 대한 예수님의 응답으로, 구원은 사람의 노력보다 하나님의 은혜로 가능함을 보여 줍니다.",
@@ -99,7 +101,8 @@ const fallbackResponse = (verseInput: string): LumiResponse => ({
     "불가능하다고 느끼는 상황 속에서 하나님께 어떤 순종을 드릴 수 있을까?"
   ],
   prayer:
-    "주님, 사람에게는 불가능해 보이는 상황 속에서도 주님의 은혜와 능력을 바라보며 믿음으로 순종하게 해 주세요."
+    "주님, 사람에게는 불가능해 보이는 상황 속에서도 주님의 은혜와 능력을 바라보며 믿음으로 순종하게 해 주세요.",
+  verseText: "개역개정 본문을 불러오지 못했습니다."
 });
 
 const responseWrapper = <
@@ -136,11 +139,19 @@ export async function POST(request: Request) {
     return responseWrapper({
       success: true,
       data: fallbackResponse(verseInput),
-      warning: "OPENAI_API_KEY가 설정되지 않아 예시 응답을 반환했어요."
+      warning: "OPENAI_API_KEY가 설정되지 않아 예시 응답을 반환했어요.",
+      fallback: true
     });
   }
 
   try {
+    const normalizedKey = buildNormalizedKey(verseInput);
+    let verseText: string | undefined;
+
+    if (normalizedKey in (bibleData as Record<string, string>)) {
+      verseText = (bibleData as Record<string, string>)[normalizedKey].trim();
+    }
+
     const openai = new OpenAI({ apiKey });
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
@@ -177,9 +188,13 @@ export async function POST(request: Request) {
       .pipe(lumiResultSchema)
       .parse(rawContent);
 
-    const responsePayload: LumiResponse = {
+    const responsePayload: SelahResponse = {
       ...parsedJson,
-      verseInput
+      verseInput,
+      verseText:
+        verseText ??
+        parsedJson.verseText ??
+        "개역개정 본문을 불러오지 못했습니다."
     };
 
     return responseWrapper({ success: true, data: responsePayload });
@@ -191,7 +206,8 @@ export async function POST(request: Request) {
         return responseWrapper({
           success: true,
           data: fallbackResponse(verseInput),
-          warning: "OpenAI 호출 제한으로 예시 응답을 반환했어요."
+          warning: "OpenAI 호출 제한으로 예시 응답을 반환했어요.",
+          fallback: true
         });
       }
 
@@ -220,7 +236,7 @@ export async function POST(request: Request) {
         error:
           error instanceof Error
             ? error.message
-            : "루미가 지금은 응답할 수 없어요. 잠시 후 다시 시도해 주세요."
+            : "Selah가 지금은 응답할 수 없어요. 잠시 후 다시 시도해 주세요."
       },
       500
     );
