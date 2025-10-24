@@ -173,6 +173,13 @@ export default function Page() {
               placeholder="성경 구절 검색 (예: 시편 23편 1절)"
               className="w-full rounded-full border border-[#D7D2B1] bg-white/92 py-4 pl-14 pr-6 text-base text-selah-ink shadow-[0_18px_40px_-28px_rgba(47,43,74,0.65)] placeholder:text-selah-ink/40 focus:border-selah-ink focus:outline-none focus:ring-2 focus:ring-selah-ink/15"
               autoComplete="off"
+              inputMode="search"
+              enterKeyHint="search"
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.currentTarget.form?.requestSubmit();
+                }
+              }}
               style={{
                 backgroundImage: "url('/search-icon.svg')",
                 backgroundRepeat: "no-repeat",
