@@ -4,11 +4,12 @@ import { z } from "zod";
 import {
   lumiResultSchema,
   verseInputSchema,
-  SelahResponse
+  SelahResponse,
+  parseVerseRange,
+  getBookAbbreviation
 } from "@/lib/schema";
 import { SYSTEM_PROMPT, USER_PROMPT_TEMPLATE } from "@/lib/prompts";
 import bibleData from "@/bible.json";
-import { buildNormalizedKey } from "@/lib/schema";
 
 const LUMI_JSON_SCHEMA = {
   type: "object",
@@ -145,11 +146,43 @@ export async function POST(request: Request) {
   }
 
   try {
-    const normalizedKey = buildNormalizedKey(verseInput);
+    const verseSource = bibleData as Record<string, string>;
+    const parsedRange = parseVerseRange(verseInput);
     let verseText: string | undefined;
 
-    if (normalizedKey in (bibleData as Record<string, string>)) {
-      verseText = (bibleData as Record<string, string>)[normalizedKey].trim();
+    if (parsedRange) {
+      const bookKey = getBookAbbreviation(parsedRange.book);
+
+      if (parsedRange.startVerse === undefined) {
+        const prefix = `${bookKey}${parsedRange.chapter}:`;
+        const collected = Object.keys(verseSource)
+          .filter((key) => key.startsWith(prefix))
+          .sort((a, b) => {
+            const aVerse = Number(a.split(":")[1]);
+            const bVerse = Number(b.split(":")[1]);
+            return aVerse - bVerse;
+          })
+          .map((key) => verseSource[key]?.trim())
+          .filter((val): val is string => Boolean(val));
+
+        if (collected.length > 0) {
+          verseText = collected.join(" ");
+        }
+      } else {
+        const startVerse = parsedRange.startVerse;
+        const endVerse = parsedRange.endVerse ?? parsedRange.startVerse;
+        const verses: string[] = [];
+        for (let verse = startVerse; verse <= endVerse; verse += 1) {
+          const key = `${bookKey}${parsedRange.chapter}:${verse}`;
+          const text = verseSource[key];
+          if (text) {
+            verses.push(text.trim());
+          }
+        }
+        if (verses.length > 0) {
+          verseText = verses.join(" ");
+        }
+      }
     }
 
     const openai = new OpenAI({ apiKey });

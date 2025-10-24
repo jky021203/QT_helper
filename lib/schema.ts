@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const VERSE_REGEX =
-  /^([가-힣A-Za-z0-9\s]+?)\s*(\d{1,3})(?:\s*(?:장|편))?(?:\s*[:\s]\s*)(\d{1,3})(?:\s*(?:절)?)?$/;
+  /^([가-힣A-Za-z0-9\s]+?)\s*(\d{1,3})(?::(\d{1,3})(?:-(\d{1,3}))?)?$/;
 
 const BOOK_ABBREVIATIONS: Record<string, string> = {
   창세기: "창",
@@ -75,57 +75,106 @@ const BOOK_ABBREVIATIONS: Record<string, string> = {
 const stripQuotes = (value: string) =>
   value.replace(/["“”'’‛‹›«»「」『』]/g, "");
 
-export const normalizeVerseInput = (raw: string): string | null => {
+export type ParsedVerseRange = {
+  book: string;
+  chapter: number;
+  startVerse?: number;
+  endVerse?: number;
+};
+
+const normaliseRawInput = (raw: string) =>
+  raw
+    .replace(/\s+/g, " ")
+    .replace(/(\d+)\s*장\s*(\d+)/g, "$1:$2")
+    .replace(/(\d+)\s*장/g, "$1")
+    .replace(/(\d+)\s*절/g, "$1")
+    .replace(/[~]/g, "-")
+    .replace(/\s*-\s*/g, "-")
+    .trim();
+
+export const parseVerseRange = (raw: string): ParsedVerseRange | null => {
   const sanitized = stripQuotes(raw).trim();
   if (!sanitized) {
     return null;
   }
 
-  const compacted = sanitized.replace(/\s+/g, " ");
+  const compacted = normaliseRawInput(sanitized);
   const match = compacted.match(VERSE_REGEX);
 
   if (!match) {
     return null;
   }
 
-  const [, book, chapter, verse] = match;
-  const normalizedBook = book.replace(/\s+/g, " ").trim();
-
-  if (!normalizedBook) {
+  const [, bookRaw, chapterRaw, startVerseRaw, endVerseRaw] = match;
+  const book = bookRaw.replace(/\s+/g, " ").trim();
+  if (!book) {
     return null;
   }
 
-  return `${normalizedBook} ${chapter}:${verse}`;
+  const chapter = Number(chapterRaw);
+  if (Number.isNaN(chapter)) {
+    return null;
+  }
+
+  const startVerse = startVerseRaw ? Number(startVerseRaw) : undefined;
+  const endVerse = endVerseRaw
+    ? Number(endVerseRaw)
+    : undefined;
+
+  if (startVerse !== undefined && Number.isNaN(startVerse)) {
+    return null;
+  }
+  if (endVerse !== undefined && Number.isNaN(endVerse)) {
+    return null;
+  }
+  if (
+    startVerse !== undefined &&
+    endVerse !== undefined &&
+    endVerse < startVerse
+  ) {
+    return null;
+  }
+
+  return {
+    book,
+    chapter,
+    startVerse,
+    endVerse: endVerse ?? startVerse
+  };
 };
 
-export const buildNormalizedKey = (normalizedVerse: string): string => {
-  const [book, cv] = normalizedVerse.split(" ");
-  if (!book || !cv) {
-    return normalizedVerse.replace(" ", "");
+export const formatVerseRange = (parsed: ParsedVerseRange): string => {
+  const { book, chapter, startVerse, endVerse } = parsed;
+  if (startVerse === undefined) {
+    return `${book} ${chapter}`;
   }
-  const abbreviation = BOOK_ABBREVIATIONS[book.replace(/\s+/g, "")] ??
-    book.replace(/\s+/g, "");
-  return `${abbreviation}${cv.replace(/\s+/g, "")}`;
+  if (endVerse && endVerse !== startVerse) {
+    return `${book} ${chapter}:${startVerse}-${endVerse}`;
+  }
+  return `${book} ${chapter}:${startVerse}`;
 };
+
+export const getBookAbbreviation = (book: string): string =>
+  BOOK_ABBREVIATIONS[book.replace(/\s+/g, "")] ?? book.replace(/\s+/g, "");
 
 const baseVerseInputSchema = z.object({
   verseInput: z.string().min(1, "성경 구절을 입력해 주세요.")
 });
 
 export const verseInputSchema = baseVerseInputSchema.transform((data, ctx) => {
-  const normalized = normalizeVerseInput(data.verseInput);
+  const parsed = parseVerseRange(data.verseInput);
 
-  if (!normalized) {
+  if (!parsed) {
     ctx.addIssue({
       path: ["verseInput"],
       code: z.ZodIssueCode.custom,
       message:
-        "구절은 예: 마가복음 10:27, 마가복음 1장 1절, 시편 23편 1절 형식으로 입력해 주세요."
+        "구절은 예: 마가복음 10:27, 마가복음 1장 1절, 시편 23편 1절, 마태복음 5장 1절-4절 형식으로 입력해 주세요."
     });
     return z.NEVER;
   }
 
-  return { verseInput: normalized };
+  return { verseInput: formatVerseRange(parsed) };
 });
 
 export const lumiResultSchema = baseVerseInputSchema
@@ -153,8 +202,8 @@ export const lumiResultSchema = baseVerseInputSchema
     verseText: z.string().optional()
   })
   .transform((data, ctx) => {
-    const normalized = normalizeVerseInput(data.verseInput);
-    if (!normalized) {
+    const parsed = parseVerseRange(data.verseInput);
+    if (!parsed) {
       ctx.addIssue({
         path: ["verseInput"],
         code: z.ZodIssueCode.custom,
@@ -165,7 +214,7 @@ export const lumiResultSchema = baseVerseInputSchema
 
     return {
       ...data,
-      verseInput: normalized
+      verseInput: formatVerseRange(parsed)
     };
   });
 

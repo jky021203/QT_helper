@@ -24,15 +24,7 @@ export default function RootLayout({ children }: Props) {
   return (
     <html lang="ko" className={notoSansKr.className}>
       <body className="bg-selah-sun text-selah-ink antialiased">
-        <main
-          className="relative flex min-h-screen w-full flex-col"
-          style={{
-            backgroundImage: "url('/selah-bg.svg')",
-            backgroundSize: "100% auto",
-            backgroundPosition: "top center",
-            backgroundRepeat: "no-repeat"
-          }}
-        >
+        <main className="selah-main relative flex min-h-screen w-full flex-col">
           {children}
         </main>
       </body>

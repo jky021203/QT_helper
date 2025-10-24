@@ -16,6 +16,28 @@ body {
   font-family: inherit;
 }
 
+.selah-main {
+  background-image: url('/selah-bg.svg');
+  background-size: 100% auto;
+  background-position: top center;
+  background-repeat: no-repeat;
+}
+
+@media (max-width: 640px) {
+  body {
+    background-image: url('/selah-m-bg.svg');
+    background-size: contain;
+    background-position: top center;
+    background-repeat: no-repeat;
+  }
+
+  .selah-main {
+    background-image: url('/selah-m-bg.svg');
+    background-size: cover;
+    background-position: top center;
+  }
+}
+
 .scrollbar-thin::-webkit-scrollbar {
   width: 6px;
   height: 6px;

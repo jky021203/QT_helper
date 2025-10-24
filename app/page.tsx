@@ -144,14 +144,14 @@ export default function Page() {
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 pb-16 pt-12 sm:px-8">
-      <div className="flex min-h-[420px] flex-col items-center justify-center gap-8">
+      <div className="flex min-h-[200px] flex-col items-center justify-center gap-8 sm:min-h-[420px]">
         <Image
           src="/selah-logo.svg"
           alt="Selah 로고"
           width={235}
           height={73}
           priority
-          className="select-none"
+          className="select-none sm:w-[235px] w-[100px] h-auto"
         />
         <div className="w-full max-w-[820px]">
           <h1 className="sr-only">Selah – 말씀 묵상 챗봇</h1>
